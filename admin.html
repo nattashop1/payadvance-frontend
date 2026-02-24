@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayAdvance — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:#1B6B4A; --green-dark:#145238; --green-light:#E8F5EE;
+      --accent:#34D399; --orange:#FF6B35;
+      --text:#0F1923; --text-sec:#4B5563; --text-light:#9CA3AF;
+      --bg:#F4F7F5; --white:#FFFFFF;
+      --pending:#2563EB; --pending-bg:#EFF6FF;
+      --success:#059669; --success-bg:#ECFDF5;
+      --danger:#DC2626; --danger-bg:#FEF2F2;
+      --warn:#D97706; --warn-bg:#FFFBEB;
+      --shadow:0 4px 24px rgba(0,0,0,0.07);
+    }
+    body { font-family:'Sarabun',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* ─ Header ─ */
+    .header {
+      background:linear-gradient(150deg, var(--green-dark), var(--green));
+      padding:20px 20px 0; position:sticky; top:0; z-index:50;
+    }
+    .header-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .header-title { font-family:'Kanit',sans-serif; font-size:20px; font-weight:800; color:#fff; }
+    .header-sub   { font-size:12px; color:rgba(255,255,255,0.65); margin-top:2px; }
+    .logout-btn {
+      padding:8px 16px; border-radius:10px; border:none;
+      background:rgba(255,255,255,0.15); color:#fff;
+      font-size:13px; cursor:pointer; font-family:'Sarabun',sans-serif;
+    }
+
+    /* Trial badge */
+    .trial-banner {
+      background:rgba(255,107,53,0.9); border-radius:10px; padding:8px 14px;
+      font-size:12px; color:#fff; font-weight:600; margin-bottom:14px;
+      display:none; align-items:center; gap:8px;
+    }
+    .trial-banner.show { display:flex; }
+
+    /* Nav tabs */
+    .nav-tabs { display:flex; gap:4px; padding-bottom:0; }
+    .nav-tab {
+      flex:1; padding:10px 6px; border:none; border-radius:12px 12px 0 0;
+      background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7);
+      font-family:'Sarabun',sans-serif; font-size:13px; font-weight:600;
+      cursor:pointer; transition:all 0.2s; text-align:center;
+    }
+    .nav-tab.active { background:#fff; color:var(--green); }
+    .nav-tab .tab-icon { font-size:16px; display:block; margin-bottom:2px; }
+
+    /* ─ Content ─ */
+    .content { padding:16px; max-width:540px; margin:0 auto; padding-bottom:32px; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* Dashboard KPI */
+    .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+    .kpi-card {
+      background:var(--white); border-radius:16px; padding:16px;
+      box-shadow:var(--shadow); text-align:center;
+    }
+    .kpi-icon  { font-size:24px; margin-bottom:6px; }
+    .kpi-value { font-family:'Kanit',sans-serif; font-size:26px; font-weight:800; color:var(--green); }
+    .kpi-label { font-size:11px; color:var(--text-sec); margin-top:2px; }
+    .kpi-amount{ font-size:12px; color:var(--text-light); margin-top:2px; }
+
+    /* Request card */
+    .req-card {
+      background:var(--white); border-radius:16px; padding:16px;
+      box-shadow:var(--shadow); margin-bottom:12px;
+      border-left:4px solid transparent;
+    }
+    .req-card.pending  { border-left-color:var(--pending); }
+    .req-card.approved { border-left-color:var(--success); }
+    .req-card.paid     { border-left-color:var(--green); }
+    .req-card.rejected { border-left-color:var(--danger); }
+
+    .req-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+    .req-name { font-family:'Kanit',sans-serif; font-size:16px; font-weight:700; }
+    .req-id   { font-size:11px; color:var(--text-light); margin-top:2px; }
+    .req-amount { font-family:'Kanit',sans-serif; font-size:22px; font-weight:800; color:var(--green); }
+    .req-sub    { font-size:11px; color:var(--text-light); text-align:right; }
+
+    .req-meta { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+    .req-meta span { font-size:12px; color:var(--text-sec); }
+
+    .req-actions { display:flex; gap:8px; }
+    .btn-approve {
+      flex:1; padding:11px; border-radius:12px; border:none;
+      background:var(--success); color:#fff;
+      font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700;
+      cursor:pointer; transition:opacity 0.2s;
+    }
+    .btn-reject {
+      flex:1; padding:11px; border-radius:12px;
+      border:2px solid var(--danger); background:var(--white);
+      color:var(--danger); font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700;
+      cursor:pointer;
+    }
+    .btn-paid {
+      flex:1; padding:11px; border-radius:12px; border:none;
+      background:var(--green); color:#fff;
+      font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700;
+      cursor:pointer;
+    }
+    .btn-approve:hover { opacity:0.85; }
+
+    .badge { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+    .badge-pending  { background:var(--pending-bg);  color:var(--pending); }
+    .badge-approved { background:var(--success-bg);  color:var(--success); }
+    .badge-paid     { background:var(--green-light);  color:var(--green); }
+    .badge-rejected { background:var(--danger-bg);   color:var(--danger); }
+
+    /* Employees tab */
+    .emp-card {
+      background:var(--white); border-radius:16px; padding:16px;
+      box-shadow:var(--shadow); margin-bottom:10px;
+      display:flex; align-items:center; gap:14px;
+    }
+    .emp-avatar {
+      width:46px; height:46px; border-radius:14px;
+      background:var(--green-light); display:flex;
+      align-items:center; justify-content:center;
+      font-size:20px; flex-shrink:0;
+    }
+    .emp-info { flex:1; }
+    .emp-name  { font-family:'Kanit',sans-serif; font-size:15px; font-weight:700; }
+    .emp-phone { font-size:12px; color:var(--text-sec); margin-top:2px; }
+    .emp-right { text-align:right; }
+    .emp-avail { font-family:'Kanit',sans-serif; font-size:15px; font-weight:700; color:var(--green); }
+    .emp-label { font-size:11px; color:var(--text-light); }
+
+    /* Add Employee form */
+    .section-card { background:var(--white); border-radius:16px; padding:18px; box-shadow:var(--shadow); margin-bottom:14px; }
+    .section-title { font-family:'Kanit',sans-serif; font-size:15px; font-weight:700; color:var(--green); margin-bottom:14px; }
+    .field { margin-bottom:12px; }
+    .field label { display:block; font-size:12px; font-weight:600; color:var(--text-sec); margin-bottom:6px; }
+    .field input, .field select {
+      width:100%; padding:12px 14px; border:2px solid #E5E7EB; border-radius:12px;
+      font-family:'Sarabun',sans-serif; font-size:14px; outline:none;
+      transition:border-color 0.2s; background:#FAFAFA;
+    }
+    .field input:focus, .field select:focus { border-color:var(--green); background:#fff; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .save-btn {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      background:var(--green); color:#fff; font-family:'Kanit',sans-serif;
+      font-size:15px; font-weight:700; cursor:pointer; margin-top:4px;
+    }
+
+    /* Settings tab */
+    .settings-row { display:flex; flex-direction:column; gap:14px; }
+
+    /* Loading */
+    .loading-wrap { text-align:center; padding:40px; color:var(--text-light); font-size:14px; }
+    .spinner { display:inline-block; width:24px; height:24px; border:3px solid #E5E7EB; border-top-color:var(--green); border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:10px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* Bottom Sheet */
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(2px); z-index:100; display:none; align-items:flex-end; }
+    .overlay.open { display:flex; }
+    .sheet { background:#fff; border-radius:22px 22px 0 0; padding:12px 22px 36px; width:100%; animation:slideUp 0.3s ease; }
+    .sheet-handle { width:40px; height:4px; background:#D1D5DB; border-radius:2px; margin:0 auto 16px; }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .sheet h3 { font-family:'Kanit',sans-serif; font-size:17px; font-weight:700; margin-bottom:16px; }
+    .sheet-btns { display:flex; gap:10px; margin-top:16px; }
+    .sheet-cancel  { flex:1; padding:14px; border-radius:12px; border:2px solid #E5E7EB; background:#fff; font-family:'Kanit',sans-serif; font-size:14px; font-weight:600; cursor:pointer; }
+    .sheet-confirm { flex:2; padding:14px; border-radius:12px; border:none; background:var(--green); color:#fff; font-family:'Kanit',sans-serif; font-size:15px; font-weight:700; cursor:pointer; }
+    .sheet-danger  { flex:2; padding:14px; border-radius:12px; border:none; background:var(--danger); color:#fff; font-family:'Kanit',sans-serif; font-size:15px; font-weight:700; cursor:pointer; }
+    .slip-field { margin-top:12px; }
+    .slip-field label { display:block; font-size:12px; font-weight:600; color:var(--text-sec); margin-bottom:6px; }
+    .slip-field input { width:100%; padding:11px 13px; border:2px solid #E5E7EB; border-radius:10px; font-size:13px; outline:none; }
+
+    /* Filter bar */
+    .filter-bar { display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:2px; }
+    .filter-btn { padding:7px 16px; border-radius:20px; border:2px solid #E5E7EB; background:var(--white); color:var(--text-sec); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+    .filter-btn.active { background:var(--green); color:#fff; border-color:var(--green); }
+
+    .empty-state { text-align:center; padding:40px 20px; color:var(--text-light); font-size:14px; }
+    .empty-state .emoji { font-size:48px; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+
+<!-- ─ Header ─ -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">📊 Admin Dashboard</div>
+      <div class="header-sub" id="header-sub">PayAdvance</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+  </div>
+
+  <div class="trial-banner" id="trial-banner">
+    <span>⚠️</span>
+    <span id="trial-msg">เหลืออีก X วัน — ต่ออายุก่อนหมดเวลา</span>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('dashboard')">
+      <span class="tab-icon">📊</span>Dashboard
+    </button>
+    <button class="nav-tab" onclick="switchTab('requests')">
+      <span class="tab-icon">📋</span>คำขอ
+    </button>
+    <button class="nav-tab" onclick="switchTab('employees')">
+      <span class="tab-icon">👥</span>คนงาน
+    </button>
+    <button class="nav-tab" onclick="switchTab('settings')">
+      <span class="tab-icon">⚙️</span>ตั้งค่า
+    </button>
+  </div>
+</div>
+
+<!-- ─ Content ─ -->
+<div class="content">
+
+  <!-- ── Dashboard ── -->
+  <div id="tab-dashboard" class="tab-panel active">
+    <div id="dashboard-content">
+      <div class="loading-wrap">
+        <div class="spinner"></div><br>กำลังโหลด...
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Requests ── -->
+  <div id="tab-requests" class="tab-panel">
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterRequests('Pending')">⏳ รอดำเนินการ</button>
+      <button class="filter-btn" onclick="filterRequests('Approved')">✅ อนุมัติแล้ว</button>
+      <button class="filter-btn" onclick="filterRequests('Paid')">💰 จ่ายแล้ว</button>
+      <button class="filter-btn" onclick="filterRequests('Rejected')">❌ ปฏิเสธ</button>
+      <button class="filter-btn" onclick="filterRequests('All')">ทั้งหมด</button>
+    </div>
+    <div id="requests-content">
+      <div class="loading-wrap"><div class="spinner"></div><br>กำลังโหลด...</div>
+    </div>
+  </div>
+
+  <!-- ── Employees ── -->
+  <div id="tab-employees" class="tab-panel">
+    <div class="section-card">
+      <div class="section-title">➕ เพิ่มคนงานใหม่</div>
+      <div class="field">
+        <label>ชื่อ-นามสกุล *</label>
+        <input type="text" id="emp-name-input" placeholder="สมชาย ใจดี" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>เบอร์โทร *</label>
+          <input type="tel" id="emp-phone-input" placeholder="08X-XXXXXXX" />
+        </div>
+        <div class="field">
+          <label>ค่าแรงรายวัน (฿)</label>
+          <input type="number" id="emp-rate-input" placeholder="500" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>วันทำงานรอบนี้</label>
+          <input type="number" id="emp-days-input" placeholder="10" />
+        </div>
+        <div class="field">
+          <label>วงเงิน cap (฿)</label>
+          <input type="number" id="emp-cap-input" placeholder="5000" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>ธนาคาร</label>
+          <select id="emp-bank-input">
+            <option>กสิกรไทย</option><option>ไทยพาณิชย์</option>
+            <option>กรุงไทย</option><option>กรุงเทพ</option>
+            <option>ทหารไทย</option><option>ออมสิน</option>
+            <option>PromptPay</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>เลขบัญชี / เบอร์</label>
+          <input type="text" id="emp-account-input" placeholder="123-4-56789-0" />
+        </div>
+      </div>
+      <button class="save-btn" id="add-emp-btn" onclick="doAddEmployee()">
+        ➕ เพิ่มคนงาน
+      </button>
+    </div>
+
+    <div id="employees-content">
+      <div class="loading-wrap"><div class="spinner"></div><br>กำลังโหลด...</div>
+    </div>
+  </div>
+
+  <!-- ── Settings ── -->
+  <div id="tab-settings" class="tab-panel">
+    <div class="section-card">
+      <div class="section-title">⏰ รอบเวลาจ่ายเงิน</div>
+      <div class="field-row">
+        <div class="field">
+          <label>รอบที่ 1</label>
+          <input type="time" id="set-time1" value="09:00" />
+        </div>
+        <div class="field">
+          <label>รอบที่ 2</label>
+          <input type="time" id="set-time2" value="13:00" />
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">💰 วงเงินเบิก</div>
+      <div class="field">
+        <label>วงเงินสูงสุด (% ของรายได้สะสม)</label>
+        <input type="number" id="set-percent" value="80" min="10" max="100" />
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">📲 LINE Notify</div>
+      <div class="field">
+        <label>Token LINE Notify</label>
+        <input type="text" id="set-line" placeholder="วาง Token ที่นี่" />
+        <p style="font-size:11px;color:var(--text-light);margin-top:5px">
+          รับ Token ได้ที่ notify-bot.line.me/th
+        </p>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">🔐 เปลี่ยนรหัสผ่าน Admin</div>
+      <div class="field">
+        <label>รหัสผ่านใหม่</label>
+        <input type="password" id="set-newpass" placeholder="อย่างน้อย 6 ตัวอักษร" />
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="doSaveSettings()">💾 บันทึกการตั้งค่า</button>
+
+    <div style="margin-top:20px; padding:14px; background:var(--green-light); border-radius:14px; font-size:13px; color:var(--green-dark);">
+      <strong>🔗 ลิงก์สำหรับคนงาน</strong><br>
+      <span id="worker-url-display" style="word-break:break-all; font-size:12px; color:var(--text-sec);">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─ Confirm Sheet ─ -->
+<div class="overlay" id="action-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="sheet-title">ยืนยันการดำเนินการ</h3>
+    <div id="sheet-body"></div>
+    <div class="sheet-btns">
+      <button class="sheet-cancel" onclick="closeSheet()">ยกเลิก</button>
+      <button id="sheet-confirm-btn" class="sheet-confirm" onclick="confirmAction()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAS_URL    = "https://script.google.com/macros/s/AKfycbwq7fZWGdyFp4HrKVUb7Fwqg4rxBmyTI6NqSVhDJj0GGrs2UoC7yKrEO6AeWM5uTbLM/exec";
+  const pathParts  = window.location.pathname.split('/').filter(Boolean);
+  const COMPANY_ID = pathParts[pathParts.length - 1] || sessionStorage.getItem('pa_companyId') || '';
+
+  let allRequests     = [];
+  let currentFilter   = 'Pending';
+  let pendingAction   = null;
+  let currentSettings = {};
+
+  // ─ Init ──────────────────────────────────────
+  window.onload = async function() {
+    if (!COMPANY_ID) { window.location.href = '/'; return; }
+
+    // แสดงชื่อบริษัท
+    const companyName = sessionStorage.getItem('pa_companyName') || COMPANY_ID;
+    const daysLeft    = parseInt(sessionStorage.getItem('pa_daysLeft')) || 0;
+    document.getElementById('header-sub').textContent = companyName;
+
+    if (daysLeft <= 3) {
+      const banner = document.getElementById('trial-banner');
+      document.getElementById('trial-msg').textContent =
+        daysLeft === 0 ? 'บัญชีหมดอายุแล้ว! กรุณาต่ออายุ' : `เหลืออีก ${daysLeft} วัน — ต่ออายุก่อนหมดเวลา`;
+      banner.classList.add('show');
+    }
+
+    document.getElementById('worker-url-display').textContent =
+      window.location.origin + '/' + COMPANY_ID;
+
+    loadDashboard();
+    loadRequests();
+    loadEmployees();
+    loadSettings();
+  };
+
+  // ─ Tabs ──────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // ─ Dashboard ─────────────────────────────────
+  async function loadDashboard() {
+    try {
+      const res = await callGAS({ action: 'getDashboard', companyId: COMPANY_ID });
+      if (res.success) renderDashboard(res);
+    } catch (e) {
+      document.getElementById('dashboard-content').innerHTML =
+        '<div class="empty-state"><div class="emoji">⚠️</div>โหลดข้อมูลไม่ได้ กรุณา Refresh</div>';
+    }
+  }
+
+  function renderDashboard(data) {
+    const s = data.stats;
+    document.getElementById('dashboard-content').innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">⏳</div>
+          <div class="kpi-value">${s.pending}</div>
+          <div class="kpi-label">รออนุมัติ</div>
+          <div class="kpi-amount">฿${s.pendingAmt.toLocaleString('th-TH')}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-value">${s.approved}</div>
+          <div class="kpi-label">อนุมัติแล้ว</div>
+          <div class="kpi-amount">฿${s.approvedAmt.toLocaleString('th-TH')}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-value">${s.paid}</div>
+          <div class="kpi-label">จ่ายแล้ว</div>
+          <div class="kpi-amount">฿${s.paidAmt.toLocaleString('th-TH')}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">👷</div>
+          <div class="kpi-value">${s.totalEmployees}</div>
+          <div class="kpi-label">คนงานทั้งหมด</div>
+          <div class="kpi-amount">&nbsp;</div>
+        </div>
+      </div>
+      <div class="section-card" style="margin-bottom:12px">
+        <div style="font-size:13px; color:var(--text-sec); margin-bottom:8px; font-weight:600;">🕐 รอบเวลาจ่ายเงิน</div>
+        <div style="font-family:'Kanit',sans-serif; font-size:18px; font-weight:700; color:var(--green);">
+          ${data.withdrawTimes.join('  |  ')}
+        </div>
+      </div>
+      ${s.pending > 0 ? `
+      <div style="background:var(--pending-bg); border-radius:14px; padding:14px 16px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-weight:700; color:var(--pending); font-size:14px;">⏳ มี ${s.pending} รายการรออนุมัติ</div>
+          <div style="font-size:12px; color:var(--text-sec);">รวม ฿${s.pendingAmt.toLocaleString('th-TH')}</div>
+        </div>
+        <button onclick="switchTab('requests')" style="padding:9px 16px; border-radius:10px; border:none; background:var(--pending); color:#fff; font-family:'Kanit',sans-serif; font-size:13px; font-weight:700; cursor:pointer;">
+          ดูเลย →
+        </button>
+      </div>` : ''}
+    `;
+  }
+
+  // ─ Requests ──────────────────────────────────
+  async function loadRequests() {
+    try {
+      const res = await callGAS({ action: 'getAllRequests', companyId: COMPANY_ID });
+      if (res.success) {
+        allRequests = res.requests;
+        renderRequests();
+      }
+    } catch (e) {}
+  }
+
+  function filterRequests(status) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    renderRequests();
+  }
+
+  function renderRequests() {
+    const filtered = currentFilter === 'All'
+      ? allRequests
+      : allRequests.filter(r => r.status === currentFilter);
+
+    const el = document.getElementById('requests-content');
+
+    if (!filtered.length) {
+      el.innerHTML = `<div class="empty-state"><div class="emoji">📭</div>ไม่มีรายการ "${currentFilter}"</div>`;
+      return;
+    }
+
+    const statusMap = {
+      Pending:  ['⏳ รอดำเนินการ', 'badge-pending'],
+      Approved: ['✅ อนุมัติแล้ว',  'badge-approved'],
+      Paid:     ['💰 จ่ายแล้ว',    'badge-paid'],
+      Rejected: ['❌ ปฏิเสธ',      'badge-rejected'],
+    };
+
+    el.innerHTML = filtered.map(r => {
+      const [label, cls] = statusMap[r.status] || [r.status, ''];
+      const actionBtns = r.status === 'Pending'
+        ? `<div class="req-actions">
+             <button class="btn-approve" onclick="openApprove('${r.requestId}','${r.employeeName}',${r.amount})">✅ อนุมัติ</button>
+             <button class="btn-reject"  onclick="openReject('${r.requestId}','${r.employeeName}')">✕ ปฏิเสธ</button>
+           </div>`
+        : r.status === 'Approved'
+        ? `<div class="req-actions">
+             <button class="btn-paid" onclick="openMarkPaid('${r.requestId}','${r.employeeName}',${r.amount})">💰 ยืนยันจ่ายแล้ว</button>
+           </div>`
+        : '';
+
+      return `
+        <div class="req-card ${r.status.toLowerCase()}">
+          <div class="req-top">
+            <div>
+              <div class="req-name">${r.employeeName}</div>
+              <div class="req-id">${r.requestId} · ${r.phone}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="req-amount">฿${Number(r.amount).toLocaleString('th-TH')}</div>
+              <div class="req-sub">รอบ ${r.round}</div>
+            </div>
+          </div>
+          <div class="req-meta">
+            <span>📅 ${r.requestTime}</span>
+            <span class="badge ${cls}">${label}</span>
+          </div>
+          ${actionBtns}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ─ Action Sheets ─────────────────────────────
+  function openApprove(reqId, name, amount) {
+    pendingAction = { type: 'approve', reqId };
+    document.getElementById('sheet-title').textContent = '✅ ยืนยันอนุมัติ';
+    document.getElementById('sheet-body').innerHTML = `
+      <p style="color:var(--text-sec);font-size:14px">อนุมัติคำขอของ <strong>${name}</strong></p>
+      <p style="font-family:'Kanit',sans-serif;font-size:28px;font-weight:800;color:var(--green);margin:12px 0">฿${Number(amount).toLocaleString('th-TH')}</p>
+    `;
+    const btn = document.getElementById('sheet-confirm-btn');
+    btn.className = 'sheet-confirm';
+    btn.textContent = '✅ อนุมัติ';
+    document.getElementById('action-overlay').classList.add('open');
+  }
+
+  function openReject(reqId, name) {
+    pendingAction = { type: 'reject', reqId };
+    document.getElementById('sheet-title').textContent = '❌ ยืนยันปฏิเสธ';
+    document.getElementById('sheet-body').innerHTML = `
+      <p style="color:var(--text-sec);font-size:14px">ปฏิเสธคำขอของ <strong>${name}</strong>?</p>
+      <div class="slip-field"><label>เหตุผล (ถ้ามี)</label><input type="text" id="reject-note" placeholder="เช่น เกินวงเงิน" /></div>
+    `;
+    const btn = document.getElementById('sheet-confirm-btn');
+    btn.className = 'sheet-danger';
+    btn.textContent = '❌ ปฏิเสธ';
+    document.getElementById('action-overlay').classList.add('open');
+  }
+
+  function openMarkPaid(reqId, name, amount) {
+    pendingAction = { type: 'paid', reqId };
+    document.getElementById('sheet-title').textContent = '💰 ยืนยันการจ่ายเงิน';
+    document.getElementById('sheet-body').innerHTML = `
+      <p style="color:var(--text-sec);font-size:14px">ยืนยันจ่ายเงินให้ <strong>${name}</strong></p>
+      <p style="font-family:'Kanit',sans-serif;font-size:28px;font-weight:800;color:var(--green);margin:12px 0">฿${Number(amount).toLocaleString('th-TH')}</p>
+      <div class="slip-field"><label>URL สลิปโอนเงิน (ถ้ามี)</label><input type="url" id="slip-url" placeholder="https://..." /></div>
+    `;
+    const btn = document.getElementById('sheet-confirm-btn');
+    btn.className = 'sheet-confirm';
+    btn.textContent = '💰 ยืนยันจ่ายแล้ว';
+    document.getElementById('action-overlay').classList.add('open');
+  }
+
+  async function confirmAction() {
+    if (!pendingAction) return;
+    const btn = document.getElementById('sheet-confirm-btn');
+    btn.disabled = true; btn.textContent = '...';
+
+    let params = { companyId: COMPANY_ID, requestId: pendingAction.reqId, adminName: 'Admin' };
+    let action = '';
+
+    if (pendingAction.type === 'approve') {
+      action = 'approveRequest';
+    } else if (pendingAction.type === 'reject') {
+      action = 'rejectRequest';
+      const noteEl = document.getElementById('reject-note');
+      if (noteEl) params.note = noteEl.value;
+    } else if (pendingAction.type === 'paid') {
+      action = 'markPaid';
+      const slipEl = document.getElementById('slip-url');
+      if (slipEl) params.slipUrl = slipEl.value;
+    }
+
+    try {
+      const res = await callGAS({ action, ...params });
+      if (res.success) {
+        closeSheet();
+        await loadRequests();
+        await loadDashboard();
+      } else {
+        alert('⚠️ ' + res.error);
+      }
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    }
+
+    btn.disabled = false;
+    pendingAction = null;
+  }
+
+  function closeSheet() {
+    document.getElementById('action-overlay').classList.remove('open');
+    pendingAction = null;
+  }
+
+  // ─ Employees ─────────────────────────────────
+  async function loadEmployees() {
+    try {
+      const res = await callGAS({ action: 'getEmployees', companyId: COMPANY_ID });
+      if (res.success) renderEmployees(res.employees);
+    } catch (e) {}
+  }
+
+  function renderEmployees(employees) {
+    const el = document.getElementById('employees-content');
+    if (!employees.length) {
+      el.innerHTML = '<div class="empty-state"><div class="emoji">👤</div>ยังไม่มีคนงาน กรอกฟอร์มด้านบนเพื่อเพิ่ม</div>';
+      return;
+    }
+    el.innerHTML = '<div style="font-family:\'Kanit\',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px;">รายชื่อคนงาน (' + employees.length + ' คน)</div>' +
+      employees.map(e => `
+        <div class="emp-card">
+          <div class="emp-avatar">👷</div>
+          <div class="emp-info">
+            <div class="emp-name">${e.name}</div>
+            <div class="emp-phone">📞 ${e.phone}</div>
+            <div style="font-size:11px;color:var(--text-light);margin-top:2px;">${e.bank} · ${e.bankAccount}</div>
+          </div>
+          <div class="emp-right">
+            <div class="emp-avail">฿${Number(e.totalEarned || 0).toLocaleString('th-TH')}</div>
+            <div class="emp-label">รายได้รอบนี้</div>
+            <div style="font-size:11px;color:var(--text-sec);margin-top:2px;">${e.workDays || 0} วัน</div>
+          </div>
+        </div>
+      `).join('');
+  }
+
+  async function doAddEmployee() {
+    const name    = document.getElementById('emp-name-input').value.trim();
+    const phone   = document.getElementById('emp-phone-input').value.trim();
+    const rate    = document.getElementById('emp-rate-input').value;
+    const days    = document.getElementById('emp-days-input').value;
+    const cap     = document.getElementById('emp-cap-input').value;
+    const bank    = document.getElementById('emp-bank-input').value;
+    const account = document.getElementById('emp-account-input').value.trim();
+    const btn     = document.getElementById('add-emp-btn');
+
+    if (!name || !phone) return alert('กรุณากรอกชื่อและเบอร์โทร');
+
+    btn.disabled = true; btn.textContent = '...';
+    try {
+      const res = await callGAS({
+        action: 'addEmployee', companyId: COMPANY_ID,
+        name, phone, dailyRate: rate, workDays: days,
+        maxPercent: 80, maxCap: cap || 5000, bank, bankAccount: account,
+      });
+      if (res.success) {
+        ['emp-name-input','emp-phone-input','emp-rate-input','emp-days-input',
+         'emp-cap-input','emp-account-input'].forEach(id => document.getElementById(id).value = '');
+        await loadEmployees();
+        alert('✅ เพิ่มคนงานสำเร็จ! ID: ' + res.employeeId);
+      } else {
+        alert('⚠️ ' + res.error);
+      }
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด');
+    }
+    btn.disabled = false; btn.textContent = '➕ เพิ่มคนงาน';
+  }
+
+  // ─ Settings ──────────────────────────────────
+  async function loadSettings() {
+    try {
+      const res = await callGAS({ action: 'getSettings', companyId: COMPANY_ID });
+      if (res.success) {
+        currentSettings = res.settings;
+        const s = res.settings;
+        if (s.WithdrawTime1) document.getElementById('set-time1').value = s.WithdrawTime1;
+        if (s.WithdrawTime2) document.getElementById('set-time2').value = s.WithdrawTime2;
+        if (s.MaxWithdrawPercent) document.getElementById('set-percent').value = s.MaxWithdrawPercent;
+        if (s.LineNotifyToken && s.LineNotifyToken !== 'YOUR_LINE_TOKEN_HERE')
+          document.getElementById('set-line').value = s.LineNotifyToken;
+      }
+    } catch (e) {}
+  }
+
+  async function doSaveSettings() {
+    const newPass = document.getElementById('set-newpass').value;
+    const settings = {
+      WithdrawTime1:      document.getElementById('set-time1').value,
+      WithdrawTime2:      document.getElementById('set-time2').value,
+      MaxWithdrawPercent: document.getElementById('set-percent').value,
+      LineNotifyToken:    document.getElementById('set-line').value,
+    };
+    if (newPass) {
+      if (newPass.length < 6) return alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+      settings.AdminPassword = newPass;
+    }
+
+    try {
+      const res = await callGAS({ action: 'saveSettings', companyId: COMPANY_ID, settings: JSON.stringify(settings) });
+      if (res.success) {
+        alert('✅ บันทึกการตั้งค่าสำเร็จ');
+        document.getElementById('set-newpass').value = '';
+      } else {
+        alert('⚠️ ' + res.error);
+      }
+    } catch (e) { alert('เกิดข้อผิดพลาด'); }
+  }
+
+  // ─ Helpers ───────────────────────────────────
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = '/';
+  }
+
+  async function callGAS(params) {
+    const url = GAS_URL + '?' + new URLSearchParams({ ...params, _t: Date.now() });
+    const res = await fetch(url);
+    return res.json();
+  }
+</script>
+</body>
+</html>

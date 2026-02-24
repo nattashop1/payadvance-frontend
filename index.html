@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayAdvance — ระบบเบิกเงินล่วงหน้า</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:       #1B6B4A;
+      --green-dark:  #145238;
+      --green-light: #E8F5EE;
+      --green-glow:  rgba(27,107,74,0.18);
+      --accent:      #34D399;
+      --orange:      #FF6B35;
+      --text:        #0F1923;
+      --text-sec:    #4B5563;
+      --text-light:  #9CA3AF;
+      --bg:          #F4F7F5;
+      --white:       #FFFFFF;
+      --card-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    }
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Landing Page ─────────────────────────── */
+    .landing {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero {
+      background: linear-gradient(150deg, var(--green-dark) 0%, var(--green) 55%, #22896B 100%);
+      padding: 60px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .logo-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px; height: 80px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 24px;
+      margin-bottom: 20px;
+      font-size: 40px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .hero h1 {
+      font-family: 'Kanit', sans-serif;
+      font-size: clamp(28px, 6vw, 42px);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      color: rgba(255,255,255,0.75);
+      font-size: 16px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .hero-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .btn-primary {
+      padding: 18px 28px;
+      border-radius: 16px;
+      border: none;
+      background: var(--accent);
+      color: var(--green-dark);
+      font-family: 'Kanit', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(52,211,153,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      text-decoration: none;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(52,211,153,0.45); }
+
+    .btn-secondary {
+      padding: 18px 28px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-family: 'Kanit', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s;
+      text-decoration: none;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.18); }
+
+    .features {
+      padding: 48px 24px;
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--white);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      box-shadow: var(--card-shadow);
+    }
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: var(--green-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .feature-card p  { font-size: 13px; color: var(--text-sec); line-height: 1.5; }
+
+    .footer-note {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* ── Register Page ─────────────────────────── */
+    #page-register, #page-success, #page-admin-login { display: none; }
+
+    .page-wrap {
+      min-height: 100vh;
+      background: var(--bg);
+    }
+
+    .top-bar {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      padding: 20px 24px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .back-btn {
+      width: 38px; height: 38px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: #fff; font-size: 18px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .top-bar-title { font-family: 'Kanit', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+    .top-bar-sub   { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+    .form-body { padding: 24px; max-width: 480px; margin: 0 auto; }
+
+    .form-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 16px;
+    }
+
+    .form-title {
+      font-family: 'Kanit', sans-serif;
+      font-size: 16px; font-weight: 700;
+      margin-bottom: 18px; color: var(--green);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text-sec); margin-bottom: 7px;
+    }
+    .field input, .field select {
+      width: 100%; padding: 14px 16px;
+      border: 2px solid #E5E7EB; border-radius: 12px;
+      font-family: 'Sarabun', sans-serif; font-size: 15px;
+      outline: none; transition: border-color 0.2s;
+      background: #FAFAFA;
+    }
+    .field input:focus, .field select:focus { border-color: var(--green); background: #fff; }
+    .field .hint { font-size: 11px; color: var(--text-light); margin-top: 5px; }
+
+    .submit-btn {
+      width: 100%; padding: 17px;
+      border-radius: 14px; border: none;
+      background: var(--green);
+      color: #fff; font-family: 'Kanit', sans-serif;
+      font-size: 17px; font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 24px var(--green-glow);
+      transition: opacity 0.2s, transform 0.15s;
+      margin-top: 8px;
+    }
+    .submit-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .error-box {
+      background: #FEF2F2; border: 1px solid #FECACA;
+      border-radius: 12px; padding: 12px 16px;
+      font-size: 13px; color: #DC2626; margin-bottom: 14px;
+      display: none;
+    }
+
+    /* Success */
+    .success-wrap {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .success-icon {
+      width: 100px; height: 100px;
+      background: var(--green-light);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+      margin-bottom: 24px;
+    }
+    .success-wrap h2 {
+      font-family: 'Kanit', sans-serif;
+      font-size: 26px; font-weight: 800;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+    .success-wrap p {
+      font-size: 15px; color: var(--text-sec);
+      margin-bottom: 8px;
+    }
+    .info-box {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 24px 0;
+      box-shadow: var(--card-shadow);
+      width: 100%;
+      max-width: 400px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row span:first-child {
+      font-weight: 600;
+      color: var(--text-sec);
+      font-size: 13px;
+    }
+    .info-row span:last-child {
+      font-weight: 700;
+      color: var(--green);
+      font-size: 14px;
+    }
+    .go-btn {
+      padding: 17px 32px;
+      border-radius: 14px;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      font-family: 'Kanit', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 24px var(--green-glow);
+      transition: opacity 0.2s;
+      margin-top: 12px;
+    }
+    .go-btn:hover { opacity: 0.92; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════ -->
+<div id="page-landing" class="landing">
+  <div class="hero">
+    <div class="logo-wrap">💰</div>
+    <h1>PayAdvance</h1>
+    <p>ระบบเบิกเงินล่วงหน้าสำหรับคนงาน<br>ง่าย รวดเร็ว ปลอดภัย</p>
+    
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showPage('register')">
+        <span>🚀</span>
+        <span>สมัครใช้งานฟรี 7 วัน</span>
+      </button>
+      <button class="btn-secondary" onclick="showPage('admin-login')">
+        <span>🔐</span>
+        <span>เข้าสู่ระบบแอดมิน</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div>
+        <h3>เบิกได้ทันที</h3>
+        <p>คนงานสแกน QR → กรอกเบอร์ → เบิกเงินได้ใน 30 วินาที</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div>
+        <h3>ปลอดภัย 100%</h3>
+        <p>ข้อมูลเก็บบน Google Cloud ปลอดภัยระดับธนาคาร</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div>
+        <h3>จัดการง่าย</h3>
+        <p>Admin ดูรายการ อนุมัติ จ่ายเงิน จากมือถือหรือคอมได้ทุกที่</p>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">💳</div>
+      <div>
+        <h3>ไม่มีค่าใช้จ่ายแอบแฝง</h3>
+        <p>ทดลองฟรี 7 วัน ไม่ต้องใส่บัตรเครดิต แพ็กเกจเริ่มต้น 299฿/เดือน</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    PayAdvance SaaS — ข้อมูลปลอดภัย เก็บบน Google Cloud<br>
+    ทดลองใช้ฟรี 7 วัน ไม่ต้องใส่บัตรเครดิต
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     REGISTER PAGE
+════════════════════════════════════ -->
+<div id="page-register" class="page-wrap">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showPage('landing')">←</button>
+    <div>
+      <div class="top-bar-title">สมัครใช้งาน</div>
+      <div class="top-bar-sub">ทดลองฟรี 7 วัน ไม่ต้องใช้บัตรเครดิต</div>
+    </div>
+  </div>
+
+  <div class="form-body">
+    <div id="reg-error" class="error-box"></div>
+
+    <div class="form-card">
+      <div class="form-title">🏢 ข้อมูลบริษัท</div>
+      <div class="field">
+        <label>ชื่อบริษัท / ร้าน / กิจการ *</label>
+        <input type="text" id="reg-company" placeholder="เช่น บริษัท ABC จำกัด" />
+      </div>
+      <div class="field">
+        <label>ประเภทกิจการ</label>
+        <select id="reg-type">
+          <option value="factory">โรงงาน</option>
+          <option value="construction">ก่อสร้าง / รับเหมา</option>
+          <option value="restaurant">ร้านอาหาร / บริการ</option>
+          <option value="agriculture">เกษตรกรรม</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-title">👤 ข้อมูลผู้ดูแลระบบ (Admin)</div>
+      <div class="field">
+        <label>อีเมล *</label>
+        <input type="email" id="reg-email" placeholder="your@email.com" />
+        <div class="hint">ใช้สำหรับ Login และรับแจ้งเตือน</div>
+      </div>
+      <div class="field">
+        <label>เบอร์โทรศัพท์ *</label>
+        <input type="tel" id="reg-phone" placeholder="08X-XXX-XXXX" maxlength="10" />
+      </div>
+      <div class="field">
+        <label>รหัสผ่าน Admin *</label>
+        <input type="password" id="reg-password" placeholder="อย่างน้อย 6 ตัวอักษร" />
+        <div class="hint">⚠️ เก็บรหัสผ่านนี้ไว้ให้ดี จะใช้สำหรับ Login Admin</div>
+      </div>
+      <div class="field">
+        <label>ยืนยันรหัสผ่าน *</label>
+        <input type="password" id="reg-password2" placeholder="กรอกรหัสผ่านอีกครั้ง" />
+      </div>
+    </div>
+
+    <button class="submit-btn" id="reg-btn" onclick="doRegister()">
+      🚀 สมัครและเริ่มใช้งานฟรี
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SUCCESS PAGE
+════════════════════════════════════ -->
+<div id="page-success">
+  <div class="success-wrap">
+    <div class="success-icon">🎉</div>
+    <h2>สมัครสำเร็จแล้ว!</h2>
+    <p>ระบบของคุณพร้อมใช้งานแล้ว</p>
+    <p style="font-size:13px">เช็คอีเมลเพื่อดูข้อมูลและลิงก์ทั้งหมด</p>
+
+    <div class="info-box">
+      <div class="info-row">
+        <span>Company ID</span>
+        <span id="suc-companyid">—</span>
+      </div>
+      <div class="info-row">
+        <span>ทดลองใช้ถึง</span>
+        <span id="suc-expiry">—</span>
+      </div>
+      <div class="info-row">
+        <span>URL Admin</span>
+        <span id="suc-adminurl" style="font-size:11px; word-break:break-all">—</span>
+      </div>
+    </div>
+
+    <button class="go-btn" id="suc-goto">
+      📊 ไปที่หน้า Admin เลย →
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     ADMIN LOGIN PAGE
+════════════════════════════════════ -->
+<div id="page-admin-login" class="page-wrap">
+  <div class="top-bar">
+    <button class="back-btn" onclick="showPage('landing')">←</button>
+    <div>
+      <div class="top-bar-title">Admin Login</div>
+      <div class="top-bar-sub">สำหรับแอดมินและบัญชีเท่านั้น</div>
+    </div>
+  </div>
+
+  <div class="form-body">
+    <div id="login-error" class="error-box"></div>
+    <div class="form-card">
+      <div class="form-title">🔐 เข้าสู่ระบบ</div>
+      <div class="field">
+        <label>Company ID *</label>
+        <input type="text" id="login-companyid" placeholder="เช่น COMP0001" />
+        <div class="hint">ดูได้จากอีเมลตอนสมัคร</div>
+      </div>
+      <div class="field">
+        <label>รหัสผ่าน Admin *</label>
+        <input type="password" id="login-password" placeholder="รหัสผ่านที่ตั้งไว้" />
+      </div>
+      <button class="submit-btn" id="login-btn" onclick="doAdminLogin()">
+        เข้าสู่ระบบ Admin
+      </button>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text-light);margin-top:12px">
+      ยังไม่มีบัญชี? <a href="#" onclick="showPage('register')" style="color:var(--green);font-weight:600">สมัครฟรี 7 วัน</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  // ── Config ────────────────────────────────────
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyBS8z-90tzCqjSSM4SxF5RFt9k3tbIWeTvCOo1LEnlhFnjD-LlBS7f2_M3xADIzHar/exec";
+
+  // ── Router ────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('[id^="page-"]').forEach(el => el.style.display = 'none');
+    const el = document.getElementById('page-' + name);
+    if (el) el.style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  // แสดง Landing เป็นหน้าแรก
+  document.getElementById('page-landing').style.display = 'flex';
+
+  // ── Register ─────────────────────────────────
+  async function doRegister() {
+    const company  = document.getElementById('reg-company').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const phone    = document.getElementById('reg-phone').value.trim();
+    const pass     = document.getElementById('reg-password').value;
+    const pass2    = document.getElementById('reg-password2').value;
+    const errBox   = document.getElementById('reg-error');
+    const btn      = document.getElementById('reg-btn');
+
+    errBox.style.display = 'none';
+
+    if (!company || !email || !phone || !pass) {
+      return showError(errBox, 'กรุณากรอกข้อมูลให้ครบทุกช่อง');
+    }
+    if (pass.length < 6) {
+      return showError(errBox, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+    }
+    if (pass !== pass2) {
+      return showError(errBox, 'รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>กำลังสร้างบัญชี...';
+
+    try {
+      const res = await callGAS({ action: 'register', companyName: company, email, phone, password: pass });
+      if (res.success) {
+        document.getElementById('suc-companyid').textContent = res.companyId;
+        document.getElementById('suc-expiry').textContent    = res.expiryDate;
+        document.getElementById('suc-adminurl').textContent  = res.adminUrl;
+        document.getElementById('suc-goto').onclick = () => {
+          window.location.href = res.adminUrl;
+        };
+        showPage('success');
+      } else {
+        showError(errBox, res.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+      }
+    } catch (e) {
+      console.error('Register error:', e);
+      showError(errBox, 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่ในอีกสักครู่');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '🚀 สมัครและเริ่มใช้งานฟรี';
+  }
+
+  // ── Admin Login ──────────────────────────────
+  async function doAdminLogin() {
+    const companyId = document.getElementById('login-companyid').value.trim().toUpperCase();
+    const password  = document.getElementById('login-password').value;
+    const errBox    = document.getElementById('login-error');
+    const btn       = document.getElementById('login-btn');
+
+    errBox.style.display = 'none';
+    if (!companyId || !password) return showError(errBox, 'กรุณากรอกข้อมูลให้ครบ');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>กำลังตรวจสอบ...';
+
+    try {
+      const res = await callGAS({ action: 'adminLogin', companyId, password });
+      if (res.success) {
+        sessionStorage.setItem('pa_companyId',   companyId);
+        sessionStorage.setItem('pa_companyName', res.companyName);
+        sessionStorage.setItem('pa_daysLeft',    res.daysLeft);
+        window.location.href = '/admin/' + companyId;
+      } else {
+        showError(errBox, res.error || 'Login ไม่สำเร็จ');
+      }
+    } catch (e) {
+      console.error('Login error:', e);
+      showError(errBox, 'ไม่สามารถเชื่อมต่อระบบได้');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'เข้าสู่ระบบ Admin';
+  }
+
+  // ── Helpers ───────────────────────────────────
+  async function callGAS(params) {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(params)
+    });
+    return res.json();
+  }
+
+  function showError(box, msg) {
+    box.textContent = '⚠️ ' + msg;
+    box.style.display = 'block';
+  }
+</script>
+</body>
+</html>
