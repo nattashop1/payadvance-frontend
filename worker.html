@@ -305,9 +305,9 @@
 <script>
   const GAS_URL = "https://script.google.com/macros/s/AKfycbwq7fZWGdyFp4HrKVUb7Fwqg4rxBmyTI6NqSVhDJj0GGrs2UoC7yKrEO6AeWM5uTbLM/exec";
 
-  // อ่าน companyId จาก URL path เช่น /COMP0001
-  const pathParts = window.location.pathname.split('/').filter(Boolean);
-  const COMPANY_ID = pathParts[pathParts.length - 1] || '';
+  // อ่าน Company ID จาก URL โดยหาด้วย regex (รองรับ /COMP0001, /admin/COMP0001, /worker/COMP0001 ฯลฯ)
+  const m = window.location.pathname.toUpperCase().match(/COMP\d{4,}/);
+  const COMPANY_ID = m ? m[0] : '';
 
   let currentEmployee = null;
   let selectedAmount = 0;
@@ -318,6 +318,12 @@
     const phone = document.getElementById('phone-input').value.trim();
     const errEl = document.getElementById('login-error');
     const btn   = document.getElementById('login-btn');
+
+    if (!COMPANY_ID) {
+      errEl.textContent = '⚠️ ลิงก์ไม่ถูกต้อง (ไม่พบ Company ID) กรุณาใช้ลิงก์จากบริษัท เช่น .../COMP0001';
+      errEl.style.display = 'block';
+      return;
+    }
     errEl.style.display = 'none';
 
     if (phone.length < 9) {
@@ -489,8 +495,11 @@
   }
 
   async function callGAS(params) {
-    const url = GAS_URL + '?' + new URLSearchParams({ ...params, _t: Date.now() });
-    const res = await fetch(url);
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...params, _t: Date.now() })
+    });
     return res.json();
   }
 

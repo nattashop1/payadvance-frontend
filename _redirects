@@ -1,2 +1,7 @@
-/admin/COMP* /admin.html 200
-/COMP* /worker.html 200
+# PayAdvance - Cloudflare Pages redirects (Netlify format)
+
+/admin/*    /admin.html   200
+/worker/*   /worker.html  200
+/COMP*      /worker.html  200
+/           /index.html   200
+/*          /index.html   200
