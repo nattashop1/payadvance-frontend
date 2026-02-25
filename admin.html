@@ -203,16 +203,16 @@
   </div>
 
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick=\"switchTab('dashboard', this)\">
+    <button class="nav-tab active" onclick="switchTab('dashboard')">
       <span class="tab-icon">📊</span>Dashboard
     </button>
-    <button class="nav-tab" onclick=\"switchTab('requests', this)\">
+    <button class="nav-tab" onclick="switchTab('requests')">
       <span class="tab-icon">📋</span>คำขอ
     </button>
-    <button class="nav-tab" onclick=\"switchTab('employees', this)\">
+    <button class="nav-tab" onclick="switchTab('employees')">
       <span class="tab-icon">👥</span>คนงาน
     </button>
-    <button class="nav-tab" onclick=\"switchTab('settings', this)\">
+    <button class="nav-tab" onclick="switchTab('settings')">
       <span class="tab-icon">⚙️</span>ตั้งค่า
     </button>
   </div>
@@ -233,11 +233,11 @@
   <!-- ── Requests ── -->
   <div id="tab-requests" class="tab-panel">
     <div class="filter-bar">
-      <button class="filter-btn active" onclick=\"filterRequests('Pending', this)\">⏳ รอดำเนินการ</button>
-      <button class="filter-btn" onclick=\"filterRequests('Approved', this)\">✅ อนุมัติแล้ว</button>
-      <button class="filter-btn" onclick=\"filterRequests('Paid', this)\">💰 จ่ายแล้ว</button>
-      <button class="filter-btn" onclick=\"filterRequests('Rejected', this)\">❌ ปฏิเสธ</button>
-      <button class="filter-btn" onclick=\"filterRequests('All', this)\">ทั้งหมด</button>
+      <button class="filter-btn active" onclick="filterRequests('Pending')">⏳ รอดำเนินการ</button>
+      <button class="filter-btn" onclick="filterRequests('Approved')">✅ อนุมัติแล้ว</button>
+      <button class="filter-btn" onclick="filterRequests('Paid')">💰 จ่ายแล้ว</button>
+      <button class="filter-btn" onclick="filterRequests('Rejected')">❌ ปฏิเสธ</button>
+      <button class="filter-btn" onclick="filterRequests('All')">ทั้งหมด</button>
     </div>
     <div id="requests-content">
       <div class="loading-wrap"><div class="spinner"></div><br>กำลังโหลด...</div>
@@ -363,9 +363,11 @@
 </div>
 
 <script>
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbwq7fZWGdyFp4HrKVUb7Fwqg4rxBmyTI6NqSVhDJj0GGrs2UoC7yKrEO6AeWM5uTbLM/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyBS8z-90tzCqjSSM4SxF5RFt9k3tbIWeTvCOo1LEnlhFnjD-LlBS7f2_M3xADIzHar/exec";
   const pathParts  = window.location.pathname.split('/').filter(Boolean);
-  const COMPANY_ID = pathParts[pathParts.length - 1] || sessionStorage.getItem('pa_companyId') || '';
+  const m = window.location.pathname.toUpperCase().match(/COMP\d{4,}/);
+  const COMPANY_ID = m ? m[0] : '';
+
 
   let allRequests     = [];
   let currentFilter   = 'Pending';
@@ -398,25 +400,21 @@
   };
 
   // ─ Tabs ──────────────────────────────────────
-  function switchTab(name, btn) {
+  function switchTab(name) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
-    if (btn) btn.classList.add('active');
+    event.currentTarget.classList.add('active');
   }
 
   // ─ Dashboard ─────────────────────────────────
   async function loadDashboard() {
-    const el = document.getElementById('dashboard-content');
     try {
       const res = await callGAS({ action: 'getDashboard', companyId: COMPANY_ID });
-      if (res && res.success) {
-        renderDashboard(res);
-      } else {
-        el.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div>${(res && res.error) ? res.error : 'โหลดข้อมูลไม่ได้'}</div>`;
-      }
+      if (res.success) renderDashboard(res);
     } catch (e) {
-      el.innerHTML = '<div class="empty-state"><div class="emoji">⚠️</div>ไม่สามารถเชื่อมต่อระบบได้<br>กรุณา Refresh</div>';
+      document.getElementById('dashboard-content').innerHTML =
+        '<div class="empty-state"><div class="emoji">⚠️</div>โหลดข้อมูลไม่ได้ กรุณา Refresh</div>';
     }
   }
 
@@ -461,7 +459,7 @@
           <div style="font-weight:700; color:var(--pending); font-size:14px;">⏳ มี ${s.pending} รายการรออนุมัติ</div>
           <div style="font-size:12px; color:var(--text-sec);">รวม ฿${s.pendingAmt.toLocaleString('th-TH')}</div>
         </div>
-        <button onclick=\"switchTab('requests', this)\" style="padding:9px 16px; border-radius:10px; border:none; background:var(--pending); color:#fff; font-family:'Kanit',sans-serif; font-size:13px; font-weight:700; cursor:pointer;">
+        <button onclick="switchTab('requests')" style="padding:9px 16px; border-radius:10px; border:none; background:var(--pending); color:#fff; font-family:'Kanit',sans-serif; font-size:13px; font-weight:700; cursor:pointer;">
           ดูเลย →
         </button>
       </div>` : ''}
@@ -470,24 +468,19 @@
 
   // ─ Requests ──────────────────────────────────
   async function loadRequests() {
-    const el = document.getElementById('requests-content');
     try {
       const res = await callGAS({ action: 'getAllRequests', companyId: COMPANY_ID });
-      if (res && res.success) {
-        allRequests = res.requests || [];
+      if (res.success) {
+        allRequests = res.requests;
         renderRequests();
-      } else {
-        el.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div>${(res && res.error) ? res.error : 'โหลดรายการไม่ได้'}</div>`;
       }
-    } catch (e) {
-      el.innerHTML = '<div class="empty-state"><div class="emoji">⚠️</div>ไม่สามารถเชื่อมต่อระบบได้</div>';
-    }
+    } catch (e) {}
   }
 
-  function filterRequests(status, btn) {
+  function filterRequests(status) {
     currentFilter = status;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
+    event.currentTarget.classList.add('active');
     renderRequests();
   }
 
@@ -630,17 +623,10 @@
 
   // ─ Employees ─────────────────────────────────
   async function loadEmployees() {
-    const el = document.getElementById('employees-content');
     try {
       const res = await callGAS({ action: 'getEmployees', companyId: COMPANY_ID });
-      if (res && res.success) {
-        renderEmployees(res.employees || []);
-      } else {
-        el.innerHTML = `<div class="empty-state"><div class="emoji">⚠️</div>${(res && res.error) ? res.error : 'โหลดคนงานไม่ได้'}</div>`;
-      }
-    } catch (e) {
-      el.innerHTML = '<div class="empty-state"><div class="emoji">⚠️</div>ไม่สามารถเชื่อมต่อระบบได้</div>';
-    }
+      if (res.success) renderEmployees(res.employees);
+    } catch (e) {}
   }
 
   function renderEmployees(employees) {
@@ -730,7 +716,7 @@
     }
 
     try {
-      const res = await callGAS({ action: 'saveSettings', companyId: COMPANY_ID, settings });
+      const res = await callGAS({ action: 'saveSettings', companyId: COMPANY_ID, settings: JSON.stringify(settings) });
       if (res.success) {
         alert('✅ บันทึกการตั้งค่าสำเร็จ');
         document.getElementById('set-newpass').value = '';
@@ -746,12 +732,69 @@
     window.location.href = '/';
   }
 
-  async function callGAS(params) {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...params, _t: Date.now() })
+  
+  // JSONP call to Google Apps Script (avoids CORS issues)
+  
+  // JSONP call to Google Apps Script (avoids CORS issues)
+  function callGAS(params) {
+    return new Promise((resolve, reject) => {
+      const cb = 'cb_' + Math.random().toString(36).slice(2);
+      const q = new URLSearchParams({ ...params, callback: cb, _t: Date.now() }).toString();
+      const s = document.createElement('script');
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('timeout'));
+      }, 15000);
+
+      function cleanup() {
+        clearTimeout(timeout);
+        if (window[cb]) delete window[cb];
+        if (s && s.parentNode) s.parentNode.removeChild(s);
+      }
+
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+
+      s.onerror = () => {
+        cleanup();
+        reject(new Error('network'));
+      };
+
+      s.src = GAS_URL + '?' + q;
+      document.body.appendChild(s);
     });
+  }
+).toString();
+      const s = document.createElement('script');
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('timeout'));
+      }, 15000);
+
+      function cleanup() {
+        clearTimeout(timeout);
+        if (window[cb]) delete window[cb];
+        if (s && s.parentNode) s.parentNode.removeChild(s);
+      }
+
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+
+      s.onerror = () => {
+        cleanup();
+        reject(new Error('network'));
+      };
+
+      s.src = GAS_URL + '?' + q;
+      document.body.appendChild(s);
+    });
+  }
+);
+    const res = await fetch(url);
     return res.json();
   }
 </script>
