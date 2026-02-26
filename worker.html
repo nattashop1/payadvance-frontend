@@ -303,13 +303,12 @@
 </div>
 
 <script>
+  // ✅ ใช้ Web App URL ตัวเดียวกันทั้งระบบ (ต้องเป็น /exec)
   const GAS_URL = "https://script.google.com/macros/s/AKfycbyBS8z-90tzCqjSSM4SxF5RFt9k3tbIWeTvCOo1LEnlhFnjD-LlBS7f2_M3xADIzHar/exec";
 
   // อ่าน companyId จาก URL path เช่น /COMP0001
   const pathParts = window.location.pathname.split('/').filter(Boolean);
-  const m = window.location.pathname.toUpperCase().match(/COMP\d{4,}/);
-  const COMPANY_ID = m ? m[0] : '';
-
+  const COMPANY_ID = pathParts[pathParts.length - 1] || '';
 
   let currentEmployee = null;
   let selectedAmount = 0;
@@ -490,68 +489,8 @@
     return withdrawTimes[0] + ' (วันถัดไป)';
   }
 
-  
-  // JSONP call to Google Apps Script (avoids CORS issues)
-  
-  // JSONP call to Google Apps Script (avoids CORS issues)
-  function callGAS(params) {
-    return new Promise((resolve, reject) => {
-      const cb = 'cb_' + Math.random().toString(36).slice(2);
-      const q = new URLSearchParams({ ...params, callback: cb, _t: Date.now() }).toString();
-      const s = document.createElement('script');
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error('timeout'));
-      }, 15000);
-
-      function cleanup() {
-        clearTimeout(timeout);
-        if (window[cb]) delete window[cb];
-        if (s && s.parentNode) s.parentNode.removeChild(s);
-      }
-
-      window[cb] = (data) => {
-        cleanup();
-        resolve(data);
-      };
-
-      s.onerror = () => {
-        cleanup();
-        reject(new Error('network'));
-      };
-
-      s.src = GAS_URL + '?' + q;
-      document.body.appendChild(s);
-    });
-  }
-).toString();
-      const s = document.createElement('script');
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error('timeout'));
-      }, 15000);
-
-      function cleanup() {
-        clearTimeout(timeout);
-        if (window[cb]) delete window[cb];
-        if (s && s.parentNode) s.parentNode.removeChild(s);
-      }
-
-      window[cb] = (data) => {
-        cleanup();
-        resolve(data);
-      };
-
-      s.onerror = () => {
-        cleanup();
-        reject(new Error('network'));
-      };
-
-      s.src = GAS_URL + '?' + q;
-      document.body.appendChild(s);
-    });
-  }
-);
+  async function callGAS(params) {
+    const url = GAS_URL + '?' + new URLSearchParams({ ...params, _t: Date.now() });
     const res = await fetch(url);
     return res.json();
   }
